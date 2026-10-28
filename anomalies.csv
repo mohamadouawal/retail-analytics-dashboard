@@ -1,0 +1,2 @@
+InvoiceNo,Description,Quantity,UnitPrice,Anomaly_Score,Status
+INV1011,DIAMOND RING,1,15000.0,-1.0,Anomaly

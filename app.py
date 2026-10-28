@@ -130,7 +130,7 @@ if uploaded_file is not None:
             )
             fig_bar.update_layout(yaxis={'categoryorder':'total ascending'})
             st.plotly_chart(fig_bar, use_container_width=True, key="bar_chart")
-            
+
         with col2:
             status_counts = filtered_df['Status'].value_counts().reset_index()
             status_counts.columns = ['Status', 'Count']

@@ -96,7 +96,7 @@ if uploaded_file is not None:
         
         anomaly_results = detect_anomalies(filtered_df, feature_cols=unique_features, contamination=0.01)
         filtered_df['Status'] = anomaly_results['Anomaly_Score'].apply(lambda x: 'Anomaly' if x == -1 else 'Normal')
-        
+
         anomalies = filtered_df[filtered_df['Status'] == 'Anomaly']
 
     # 6. Dashboard & Tab Rendering
@@ -133,7 +133,7 @@ if uploaded_file is not None:
                 labels={'Metric_Value': qty_col} # Keep the tooltip and axis visually clean
             )
             fig_bar.update_layout(yaxis={'categoryorder':'total ascending'})
-            st.plotly_chart(fig_bar, use_container_width=True, key="bar_chart")
+            st.plotly_chart(fig_bar, width="stretch", key="bar_chart")
 
         with col2:
             status_counts = filtered_df['Status'].value_counts().reset_index()
@@ -143,7 +143,7 @@ if uploaded_file is not None:
                 title=t["chart_anomaly_dist"], 
                 color='Status', color_discrete_map={'Normal':'#2ecc71', 'Anomaly':'#e74c3c'}
             )
-            st.plotly_chart(fig_pie, use_container_width=True, key="pie_chart")
+            st.plotly_chart(fig_pie, width="stretch", key="pie_chart")
 
         fig_scatter = px.scatter(
             filtered_df, x=qty_col, y=price_col, color='Status',
@@ -151,7 +151,7 @@ if uploaded_file is not None:
             hover_data=all_cols,
             color_discrete_map={'Normal':'#3498db', 'Anomaly':'#e74c3c'}
         )
-        st.plotly_chart(fig_scatter, use_container_width=True, key="scatter_chart")
+        st.plotly_chart(fig_scatter, width="stretch", key="scatter_chart")
 
     with tab2:
         if not recommendations.empty:
@@ -161,14 +161,14 @@ if uploaded_file is not None:
             display_df = recommendations[['antecedents', 'consequents', 'confidence', 'lift']].head(50)
             display_df.columns = [t["col_antecedents"], t["col_consequents"], t["col_confidence"], t["col_lift"]]
 
-            st.dataframe(display_df, use_container_width=True)
+            st.dataframe(display_df, width="stretch")
             st.download_button(label=t["btn_download_csv"], data=convert_df(display_df), file_name='recommendations.csv', mime='text/csv')
         else:
             st.info(t["msg_no_rules"])
 
     with tab3:
         st.write(f"Flagged {len(anomalies)} isolated transactions for review.")
-        st.dataframe(anomalies, use_container_width=True)
+        st.dataframe(anomalies, width="stretch")
 
         if not anomalies.empty:
             csv_anomalies = convert_df(anomalies)

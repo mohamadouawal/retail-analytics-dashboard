@@ -1,5 +1,5 @@
 /* assets/styles.css */
-@import url('https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500&display=swap');
+/* @import url('https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500&display=swap');
 
 html, body, [class*="css"] {
     font-family: 'Noto Sans', sans-serif;
@@ -9,4 +9,97 @@ h1, h2, h3, h4, h5, h6 {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     font-weight: 600; /* Semibold */
     color: #2C3E50;
+} 
+*/
+
+/* Streamlit Specific Font Overrides */
+.stApp {
+    font-family: 'Exo 2', sans-serif;
 }
+
+.stMarkdown h1,
+.stMarkdown h2,
+.stMarkdown h3,
+.stMarkdown h4,
+.stMarkdown h5,
+.stMarkdown h6 {
+    font-family: 'Orbitron', sans-serif;
+}
+
+.stButton button,
+.stTextInput input,
+.stSelectbox,
+.stDataFrame {
+    font-family: 'Exo 2', sans-serif;
+}
+
+
+
+/* assets/styles.css */
+
+/* Import Futuristic Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Exo+2:wght@300;400;500;600;700&family=Orbitron:wght@400;500;600;700&display=swap');
+
+/* Global Font Configuration */
+:root {
+    --font-primary: 'Exo 2', sans-serif;
+    --font-heading: 'Orbitron', sans-serif;
+    --color-heading: #2C3E50;
+}
+
+/* Global Body and Application Styles */
+html, body, [class*="css"] {
+    font-family: var(--font-primary);
+    font-weight: 400;
+}
+
+/* Futuristic Headings */
+h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading);
+    font-weight: 600;
+    color: var(--color-heading);
+    letter-spacing: 0.5px;
+}
+
+/* Dashboard Titles */
+.dashboard-title,
+.section-title,
+.page-title {
+    font-family: var(--font-heading);
+    font-weight: 600;
+    letter-spacing: 0.7px;
+}
+
+/* Tables and Data Display */
+table, th, td {
+    font-family: var(--font-primary);
+    font-weight: 400;
+}
+
+/* Table Headers */
+th {
+    font-weight: 600;
+    letter-spacing: 0.3px;
+}
+
+/* Buttons and Form Elements */
+button, input, select, textarea {
+    font-family: var(--font-primary);
+    font-weight: 500;
+}
+
+/* Dashboard Metrics and KPI Values */
+.kpi-value,
+.metric-value,
+.stat-number {
+    font-family: var(--font-heading);
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+/* Navigation and Sidebar */
+nav, aside, .sidebar {
+    font-family: var(--font-primary);
+    font-weight: 500;
+}
+

@@ -39,26 +39,25 @@ if uploaded_file is not None:
     if not num_cols: num_cols = all_cols
     if not cat_cols: cat_cols = all_cols
 
-    # Sidebar Mapping Interface
+   # Sidebar Mapping Interface
     st.sidebar.header(t["map_header"])
     tx_col = st.sidebar.selectbox(t["map_tx"], all_cols, index=0)
     item_col = st.sidebar.selectbox(t["map_item"], all_cols, index=min(1, len(all_cols)-1))
     qty_col = st.sidebar.selectbox(t["map_qty"], num_cols, index=0)
     price_col = st.sidebar.selectbox(t["map_price"], num_cols, index=min(1, len(num_cols)-1))
 
-    # # Real-Time Interactive Filters matching the selected metrics
-    # st.sidebar.header(t["filter_header"])
-    # min_qty = st.sidebar.slider(t["filter_min_qty"].format(qty=qty_col), 
-    #                             float(df[qty_col].min()), 
-    #                             float(df[qty_col].max()), 
-    #                             float(df[qty_col].min()))
-                                
-    # max_price = st.sidebar.slider(t["filter_max_price"].format(price=price_col), 
-    #                               float(df[price_col].min()), 
-    #                               float(df[price_col].max()), 
-    #                               float(df[price_col].max()))
+    # --- NEW: Force numeric conversion and handle text gracefully ---
+    # Coerce errors to NaN (Not a Number), then drop rows where the metric is missing/invalid
+    df[qty_col] = pd.to_numeric(df[qty_col], errors='coerce')
+    df[price_col] = pd.to_numeric(df[price_col], errors='coerce')
+    df = df.dropna(subset=[qty_col, price_col])
 
-    # Extract boundaries
+    if df.empty:
+        st.warning("The selected metric columns do not contain valid numeric data. Please map different columns. / Seçilen metrik sütunları geçerli sayısal veri içermiyor. Lütfen farklı sütunlar eşleştirin.")
+        st.stop()
+    # ----------------------------------------------------------------
+
+    # Extract boundaries safely now that we guarantee they are numeric
     qty_min, qty_max = float(df[qty_col].min()), float(df[qty_col].max())
     price_min, price_max = float(df[price_col].min()), float(df[price_col].max())
 
@@ -78,16 +77,8 @@ if uploaded_file is not None:
     max_price = st.sidebar.slider(t["filter_max_price"].format(price=price_col), 
                                   price_min, 
                                   price_max, 
-                                  price_max)
+                                  price_max) 
 
-    # Isolate data based on user constraints
-    filtered_df = df[(df[qty_col] >= min_qty) & (df[price_col] <= max_price)].copy()
-    
-    # Validation check to prevent empty dataset crashes
-    if filtered_df.empty:
-        st.warning("No data matches your current filter criteria. Please adjust the sliders. / Mevcut filtre kriterlerine uyan veri bulunamadı. Lütfen kaydırıcıları ayarlayın.")
-        st.stop()
-        
     with st.spinner("Analyzing Data in Real-Time..."): 
         
         # Execute ARM with dynamic grouping columns

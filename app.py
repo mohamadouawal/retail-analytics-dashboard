@@ -2,9 +2,13 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
+import io
 from logic.apriori_rules import generate_recommendations
 from logic.anomaly_model import detect_anomalies
 from utils.translations import UI_TEXT
+from reportlab.lib.pagesizes import landscape, letter
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle
+from reportlab.lib import colors
 
 # 1. Page Configuration
 st.set_page_config(page_title="Retail Analytics", page_icon="🛒", layout="wide")
@@ -23,9 +27,45 @@ t = UI_TEXT[lang]
 st.title(t["title"])
 st.markdown(t["description"])
 
+# Helper function to convert dataframes to CSV
 @st.cache_data
 def convert_df(df):
     return df.to_csv(index=False).encode('utf-8')
+
+# Helper function to convert dataframes to Excel
+@st.cache_data
+def convert_df_to_excel(df):
+    output = io.BytesIO()
+    with pd.ExcelWriter(output, engine='openpyxl') as writer:
+        df.to_excel(writer, index=False, sheet_name='Analytics Data')
+    return output.getvalue()
+
+# Helper function to convert dataframes to PDF
+@st.cache_data
+def convert_df_to_pdf(df):
+    output = io.BytesIO()
+    doc = SimpleDocTemplate(output, pagesize=landscape(letter))
+    
+    # Clean and truncate data to prevent text from rendering off the PDF page
+    clean_df = df.astype(str).map(lambda x: x[:55] + '...' if len(x) > 55 else x)
+    data = [clean_df.columns.values.tolist()] + clean_df.values.tolist()
+    
+    # Create the PDF Table layout
+    table = Table(data)
+    style = TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#2C3E50")),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+        ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, -1), 9),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 10),
+        ('BACKGROUND', (0, 1), (-1, -1), colors.HexColor("#ECF0F1")),
+        ('GRID', (0, 0), (-1, -1), 1, colors.white)
+    ])
+    table.setStyle(style)
+    
+    doc.build([table])
+    return output.getvalue()
 
 # 3. File Uploader
 uploaded_file = st.file_uploader(t["upload_label"], type=["csv", "xlsx"], help=t["upload_help"])
@@ -85,8 +125,7 @@ if uploaded_file is not None:
     if filtered_df.empty:
         st.warning("No data matches your current filter criteria. Please adjust the sliders. / Mevcut filtre kriterlerine uyan veri bulunamadı. Lütfen kaydırıcıları ayarlayın.")
         st.stop()
-
-    # 5. Real-Time Model Execution
+ 
     # 5. Real-Time Model Execution
     with st.spinner("Analyzing Data in Real-Time..."):
         recommendations = generate_recommendations(filtered_df, tx_col, item_col, min_support=0.02, min_confidence=0.5)
@@ -133,7 +172,7 @@ if uploaded_file is not None:
                 labels={'Metric_Value': qty_col} # Keep the tooltip and axis visually clean
             )
             fig_bar.update_layout(yaxis={'categoryorder':'total ascending'})
-            st.plotly_chart(fig_bar, width="stretch", key="bar_chart")
+            st.plotly_chart(fig_bar, use_container_width=True, key="bar_chart")
 
         with col2:
             status_counts = filtered_df['Status'].value_counts().reset_index()
@@ -143,7 +182,7 @@ if uploaded_file is not None:
                 title=t["chart_anomaly_dist"], 
                 color='Status', color_discrete_map={'Normal':'#2ecc71', 'Anomaly':'#e74c3c'}
             )
-            st.plotly_chart(fig_pie, width="stretch", key="pie_chart")
+            st.plotly_chart(fig_pie, use_container_width=True, key="pie_chart")
 
         fig_scatter = px.scatter(
             filtered_df, x=qty_col, y=price_col, color='Status',
@@ -151,7 +190,7 @@ if uploaded_file is not None:
             hover_data=all_cols,
             color_discrete_map={'Normal':'#3498db', 'Anomaly':'#e74c3c'}
         )
-        st.plotly_chart(fig_scatter, width="stretch", key="scatter_chart")
+        st.plotly_chart(fig_scatter, use_container_width=True, key="scatter_chart")
 
     with tab2:
         if not recommendations.empty:
@@ -161,15 +200,29 @@ if uploaded_file is not None:
             display_df = recommendations[['antecedents', 'consequents', 'confidence', 'lift']].head(50)
             display_df.columns = [t["col_antecedents"], t["col_consequents"], t["col_confidence"], t["col_lift"]]
 
-            st.dataframe(display_df, width="stretch")
-            st.download_button(label=t["btn_download_csv"], data=convert_df(display_df), file_name='recommendations.csv', mime='text/csv')
+            st.dataframe(display_df, use_container_width=True) 
+            
+            # 3 Download Options for Recommendations
+            col_csv, col_xl, col_pdf = st.columns(3)
+            with col_csv:
+                st.download_button(label=t["btn_download_csv"], data=convert_df(display_df), file_name='recommendations.csv', mime='text/csv')
+            with col_xl:
+                st.download_button(label=t["btn_download_excel"], data=convert_df_to_excel(display_df), file_name='recommendations.xlsx', mime='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+            with col_pdf:
+                st.download_button(label=t["btn_download_pdf"], data=convert_df_to_pdf(display_df), file_name='recommendations.pdf', mime='application/pdf')
         else:
             st.info(t["msg_no_rules"])
 
     with tab3:
         st.write(f"Flagged {len(anomalies)} isolated transactions for review.")
-        st.dataframe(anomalies, width="stretch")
+        st.dataframe(anomalies, use_container_width=True)
 
         if not anomalies.empty:
-            csv_anomalies = convert_df(anomalies)
-            st.download_button(label=t["btn_download_csv"], data=csv_anomalies, file_name='anomalies.csv', mime='text/csv')
+            # 3 Download Options for Anomalies
+            col_csv, col_xl, col_pdf = st.columns(3)
+            with col_csv:
+                st.download_button(label=t["btn_download_csv"], data=convert_df(anomalies), file_name='anomalies.csv', mime='text/csv')
+            with col_xl:
+                st.download_button(label=t["btn_download_excel"], data=convert_df_to_excel(anomalies), file_name='anomalies.xlsx', mime='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+            with col_pdf:
+                st.download_button(label=t["btn_download_pdf"], data=convert_df_to_pdf(anomalies), file_name='anomalies.pdf', mime='application/pdf')

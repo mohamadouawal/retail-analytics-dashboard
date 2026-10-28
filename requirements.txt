@@ -4,3 +4,4 @@ mlxtend
 scikit-learn
 openpyxl
 plotly
+reportlab

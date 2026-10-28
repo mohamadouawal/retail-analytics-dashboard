@@ -32,7 +32,9 @@ UI_TEXT = {
         "metric_products": "Total Unique Products",
         "metric_recs": "Recommended Products",
         "metric_anomalies": "Anomalies Detected",
-        "metric_tx": "Total Transactions Analyzed"
+        "metric_tx": "Total Transactions Analyzed",
+        "btn_download_excel": "Download Data as Excel",
+        "btn_download_pdf": "Download Data as PDF"
     },
     "TR": {
         "title": "Akıllı E-Ticaret Dolandırıcılık ve Öneri Sistemi",
@@ -65,6 +67,8 @@ UI_TEXT = {
         "metric_products": "Toplam Benzersiz Ürün",
         "metric_recs": "Önerilen Ürün Sayısı",
         "metric_anomalies": "Tespit Edilen Anormallik",
-        "metric_tx": "İncelenen Toplam İşlem"
+        "metric_tx": "İncelenen Toplam İşlem",
+        "btn_download_excel": "Veriyi Excel Olarak İndir",
+        "btn_download_pdf": "Veriyi PDF Olarak İndir"
     }
 }

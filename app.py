@@ -118,16 +118,19 @@ if uploaded_file is not None:
         col1, col2 = st.columns(2)
 
         with col1:
-            top_products = filtered_df.groupby(item_col)[qty_col].sum().nlargest(10).reset_index()
+            # Force the aggregated column to a unique name ('Metric_Value') to prevent pandas name collisions
+            top_products = filtered_df.groupby(item_col)[qty_col].sum().nlargest(10).reset_index(name='Metric_Value')
+            
             fig_bar = px.bar(
-                top_products, x=qty_col, y=item_col, 
+                top_products, x='Metric_Value', y=item_col, 
                 orientation='h', 
                 title=t["chart_top_products"].format(item=item_col, qty=qty_col),
-                color=qty_col, color_continuous_scale='Blues'
+                color='Metric_Value', color_continuous_scale='Blues',
+                labels={'Metric_Value': qty_col} # Keep the tooltip and axis visually clean
             )
             fig_bar.update_layout(yaxis={'categoryorder':'total ascending'})
             st.plotly_chart(fig_bar, use_container_width=True, key="bar_chart")
-
+            
         with col2:
             status_counts = filtered_df['Status'].value_counts().reset_index()
             status_counts.columns = ['Status', 'Count']

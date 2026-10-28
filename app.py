@@ -46,8 +46,8 @@ def convert_df_to_pdf(df):
     output = io.BytesIO()
     doc = SimpleDocTemplate(output, pagesize=landscape(letter))
     
-    # Clean and truncate data to prevent text from rendering off the PDF page
-    clean_df = df.astype(str).map(lambda x: x[:55] + '...' if len(x) > 55 else x)
+    # NEW: Force str(x) inside the lambda to prevent len() crashes on numeric/null data
+    clean_df = df.map(lambda x: str(x)[:55] + '...' if len(str(x)) > 55 else str(x))
     data = [clean_df.columns.values.tolist()] + clean_df.values.tolist()
     
     # Create the PDF Table layout
@@ -66,7 +66,7 @@ def convert_df_to_pdf(df):
     
     doc.build([table])
     return output.getvalue()
-
+    
 # 3. File Uploader
 uploaded_file = st.file_uploader(t["upload_label"], type=["csv", "xlsx"], help=t["upload_help"])
 

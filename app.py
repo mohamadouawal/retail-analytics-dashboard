@@ -90,10 +90,11 @@ if uploaded_file is not None:
     with st.spinner("Analyzing Data in Real-Time..."):
         recommendations = generate_recommendations(filtered_df, tx_col, item_col, min_support=0.02, min_confidence=0.5)
         
-        anomaly_results = detect_anomalies(filtered_df, feature_cols=[qty_col, price_col], contamination=0.01)
-        filtered_df['Status'] = anomaly_results['Anomaly_Score'].apply(lambda x: 'Anomaly' if x == -1 else 'Normal')
+        # Deduplicate the metric columns to prevent Narwhals/Scikit-learn DuplicateError
+        unique_features = list(dict.fromkeys([qty_col, price_col]))
         
-        anomalies = filtered_df[filtered_df['Status'] == 'Anomaly']
+        anomaly_results = detect_anomalies(filtered_df, feature_cols=unique_features, contamination=0.01)
+        filtered_df['Status'] = anomaly_results['Anomaly_Score'].apply(lambda x: 'Anomaly' if x == -1 else 'Normal')
 
     # 6. Dashboard & Tab Rendering
     tab1, tab2, tab3 = st.tabs([t["tab_dashboard"], t["tab_recommendations"], t["tab_anomalies"]])
